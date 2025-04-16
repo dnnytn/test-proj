@@ -1,0 +1,31 @@
+---
+- name: Patch Linux Servers (Ubuntu)
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      register: apt_update_results
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: safe
+      register: apt_upgrade_results
+      when: apt_update_results.changed
+
+    - name: Autoremove unused packages
+      apt:
+        autoremove: yes
+      when: apt_upgrade_results.changed
+
+    - name: Reboot the server if kernel or glibc packages were updated
+      reboot:
+        reboot_timeout: 300
+      when: "'linux-image' in apt_upgrade_results.changed_packages or 'libc' in apt_upgrade_results.changed_packages"
+      register: reboot_status
+
+    - name: Wait for server to come back online
+      wait_for_connection:
+        timeout: 300
+      when: reboot_status.rebooted
