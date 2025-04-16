@@ -1,0 +1,15 @@
+---
+- name: Test Windows Connection
+  hosts: win2019
+  connection: winrm
+  gather_facts: false
+
+  tasks:
+    - name: Run whoami on Windows host
+      ansible.windows.win_command:
+        command: whoami
+      register: whoami_output
+
+    - name: Show whoami output
+      debug:
+        var: whoami_output.stdout
