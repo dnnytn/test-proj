@@ -1,6 +1,6 @@
 ---
 - name: Test Windows Connection
-  hosts: win2019
+  hosts: all
   connection: winrm
   gather_facts: false
 
