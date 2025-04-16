@@ -6,8 +6,7 @@
 
   tasks:
     - name: Run whoami on Windows host
-      ansible.windows.win_command:
-        command: whoami
+      ansible.windows.win_command: whoami
       register: whoami_output
 
     - name: Show whoami output
