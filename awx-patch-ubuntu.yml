@@ -1,6 +1,6 @@
 ---
 - name: Patch Linux Servers (Ubuntu)
-- hosts: all
+  hosts: all
   become: true
   tasks:
     - name: Update apt repo and cache on Ubuntu/Debian servers
