@@ -1,31 +1,24 @@
 ---
 - name: Patch Linux Servers (Ubuntu)
-  hosts: all
+- hosts: all
   become: true
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-      register: apt_update_results
+    - name: Update apt repo and cache on Ubuntu/Debian servers
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
 
-    - name: Upgrade all packages
-      apt:
-        upgrade: safe
-      register: apt_upgrade_results
-      when: apt_update_results.changed
+    - name: Upgrade packages on servers
+      apt: upgrade=safe force_apt_get=yes
 
-    - name: Autoremove unused packages
-      apt:
-        autoremove: yes
-      when: apt_upgrade_results.changed
+    - name: Check if reboot is required for servers
+      register: reboot_required_file
+      stat: path=/var/run/reboot-required
 
-    - name: Reboot the server if kernel or glibc packages were updated
+    - name: Reboot server if there was a kernel update
       reboot:
+        msg: "Rebooting server because kernel was updated"
+        connect_timeout: 5
         reboot_timeout: 300
-      when: "'linux-image' in apt_upgrade_results.changed_packages or 'libc' in apt_upgrade_results.changed_packages"
-      register: reboot_status
-
-    - name: Wait for server to come back online
-      wait_for_connection:
-        timeout: 300
-      when: reboot_status.rebooted
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: reboot_required_file.stat.exists
