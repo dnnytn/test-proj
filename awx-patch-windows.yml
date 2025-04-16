@@ -1,0 +1,23 @@
+---
+- name: Patch Windows Servers
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install all available updates
+      win_updates:
+        state: installed
+        category_names:
+          - SecurityUpdates
+          - CriticalUpdates
+          - UpdateRollups
+        reboot: yes
+      register: update_results
+
+    - name: Display update results
+      debug:
+        var: update_results
+      when: update_results.changed
+
+    - name: Wait for server to reboot (if required)
+      win_reboot:
+      when: update_results.reboot_required
